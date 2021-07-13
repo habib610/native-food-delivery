@@ -1,6 +1,6 @@
 import icons from "./icons";
 
-const categories = [
+const categoryData = [
 	{
 		id: 1,
 		name: "Burger",
@@ -38,4 +38,4 @@ const categories = [
 	},
 ];
 
-export default categories;
+export default categoryData;

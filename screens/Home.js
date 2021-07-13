@@ -8,11 +8,10 @@ import {
 	FlatList,
 	Image,
 } from "react-native";
-import { Colors, FONTS, SIZES, categories, images } from "../constants";
+import { Colors, FONTS, SIZES, categoryData, images } from "../constants";
 import { Ionicons, MaterialIcons as Micon } from "@expo/vector-icons";
 
-const Home = () => {
-	console.log(categories.length);
+const Home = ({ navigation }) => {
 	const renderHeader = () => {
 		return (
 			<View
@@ -329,18 +328,21 @@ const Home = () => {
 		},
 	];
 
-	const [allCategories, setCategories] = useState(categories);
+	const [categories, setCategories] = useState(categoryData);
 	const [selectedCategory, setSelectedCategory] = useState(null);
 	const [restaurants, setRestaurants] = useState(restaurantData);
 	const [currentLocation, setCurrentLocation] = useState(
 		initialCurrentLocation
 	);
 
-	const onselectCategory = (item) => {
-		const restaurantList = allCategories.filter((a) => a.id === item.id);
-		setRestaurants(restaurantList);
-		setSelectedCategory(item);
+	const onselectCategory = (category) => {
+		let restaurantList = restaurantData.filter(a => a.categories.includes(category.id))
+
+        setRestaurants(restaurantList)
+
+        setSelectedCategory(category)
 	};
+	
 	const renderCategoriesItem = ({ item }) => {
 		return (
 			<TouchableOpacity
@@ -404,10 +406,133 @@ const Home = () => {
 		);
 	};
 
+	function getCategoryNameById(id) {
+        let category = categories.filter(a => a.id == id)
+
+        if (category.length > 0)
+            return category[0].name
+
+        return ""
+    }
+	function renderRestaurantList() {
+		
+        const renderItem = ({ item }) => {
+			console.log(item.categories)
+			return (
+				<TouchableOpacity
+					style={{ marginBottom: SIZES.padding * 2 }}
+					onPress={() => navigation.navigate("Restaurant", {
+						item,
+						currentLocation
+					})}
+				>
+					{/* Image */}
+					<View
+						style={{
+							marginBottom: SIZES.padding
+						}}
+					>
+						<Image
+							source={item.photo}
+							resizeMode="cover"
+							style={{
+								width: "100%",
+								height: 200,
+								borderRadius: SIZES.radius
+							}}
+						/>
+	
+						<View
+							style={{
+								position: 'absolute',
+								bottom: 0,
+								height: 50,
+								width: SIZES.width * 0.3,
+								backgroundColor: Colors.white,
+								borderTopRightRadius: SIZES.radius,
+								borderBottomLeftRadius: SIZES.radius,
+								alignItems: 'center',
+								justifyContent: 'center',
+								...styles.shadow
+							}}
+						>
+							<Text style={{ ...FONTS.h4 }}>{item.duration}</Text>
+						</View>
+					</View>
+	
+					{/* Restaurant Info */}
+					<Text style={{ ...FONTS.body2 }}>{item.name}</Text>
+	
+					<View
+						style={{
+							marginTop: SIZES.padding,
+							flexDirection: 'row'
+						}}
+					>
+						{/* Rating */}
+						<Ionicons
+							name="star"
+						   size={25}
+						   color={Colors.primary}
+						/>
+						<Text style={{ ...FONTS.body3 }}>{item.rating}</Text>
+	
+						{/* Categories */}
+						<View
+							style={{
+								flexDirection: 'row',
+								marginLeft: 10
+							}}
+						>
+						   {
+                            item.categories.map((categoryId) => {
+                                return (
+                                    <View
+                                        style={{ flexDirection: 'row' }}
+                                        key={categoryId}
+                                    >
+                                        <Text style={{ ...FONTS.body3 }}>{getCategoryNameById(categoryId)}</Text>
+                                        <Text style={{ ...FONTS.h3, color: Colors.darkgray }}> . </Text>
+                                    </View>
+                                )
+                            })
+                        }
+	
+							{/* Price */}
+							{
+								[1, 2, 3].map((priceRating) => (
+									<Text
+										key={priceRating}
+										style={{
+											...FONTS.body3,
+											color: (priceRating <= item.priceRating) ? Colors.black : Colors.darkgray
+										}}
+									>$</Text>
+								))
+							}
+						</View>
+					</View>
+				</TouchableOpacity>
+			)
+		}
+
+        return (
+            <FlatList
+                data={restaurants}
+                keyExtractor={item => `${item.id}`}
+                renderItem={renderItem}
+                contentContainerStyle={{
+                    paddingHorizontal: SIZES.padding * 2,
+                    paddingBottom: 30
+                }}
+            />
+        )
+    }
 	return (
 		<SafeAreaView style={styles.container}>
 			{renderHeader()}
 			{renderMainCategories()}
+			{renderRestaurantList()}
 		</SafeAreaView>
 	);
 };
